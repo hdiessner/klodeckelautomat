@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+
+  <h1>Status</h1>
+
+    Light level: {{light}}
+    <br><br>
+    <a href="/move/1/open">Open 1</a><br><br>
+    <a href="/move/1/close">Close 1</a><br><br>
+    <a href="/move/2/open">Open 2</a><br><br>
+    <a href="/move/2/close">Close 2</a><br><br>
+    <a href="/move/3/open">Open 3</a><br><br>
+    <a href="/move/3/close">Close 3</a><br><br>
+    <a href="/move/4/open">Open 4</a><br><br>
+    <a href="/move/4/close">Close 4</a><br><br>
+
+      <form action="" method="post" name="move">
+          {% if servos[0] %}
+              <button type="submit" value="Hallo" class="btn btn-success btn-lg">1 Is Open</button>
+          {% else %}
+              <button type="submit" value="Welt" class="btn btn-danger btn-lg">1 Closed</button>
+          {% endif %}
+
+          {% if servos[1] %}
+              <button type="submit" class="btn btn-success btn-lg">2 Is Open</button>
+          {% else %}
+              <button type="submit" class="btn btn-danger btn-lg">2 Closed</button>
+          {% endif %}
+
+          {% if servos[2] %}
+              <button type="submit" class="btn btn-success btn-lg">3 Is Open</button>
+          {% else %}
+              <button type="submit" class="btn btn-danger btn-lg">3 Closed</button>
+          {% endif %}
+
+          {% if servos[3] %}
+              <button type="submit" class="btn btn-success btn-lg">4 Is Open</button>
+          {% else %}
+              <button type="submit" class="btn btn-danger btn-lg">4 Closed</button>
+          {% endif %}
+      </form>
+
+</div>
+{% endblock %}
