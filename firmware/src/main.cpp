@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Servo.h>
 #include <CmdMessenger.h>
 
@@ -33,6 +34,26 @@ enum{
   kSClose,      // 8
 };
 
+void setServo(uint8_t pin, uint8_t pos){  
+  if (pos > 45){
+    openval[pin] = pos;
+    shutterclosed[pin] = false;
+    cmdMessenger.sendCmd(kSOpen, pin);
+  }else{
+    closeval[pin] = pos;
+    shutterclosed[pin]  = true;
+    cmdMessenger.sendCmd(kSClose, pin);
+  }
+  myservo.attach(pins[pin]);  
+  myservo.write(pos);    
+  delay(1500);
+  pinMode(pins[pin], INPUT);  
+}
+
+void OnUnknownCommand(){
+  cmdMessenger.sendCmd(kError,"Command without attached callback");
+}
+
 void OnS1(){
   int8_t val = cmdMessenger.readInt16Arg();
   setServo(0, val );
@@ -61,9 +82,6 @@ void attachCommandCallbacks(){
   cmdMessenger.attach(kS4, OnS4);
 }
 
-void OnUnknownCommand(){
-  cmdMessenger.sendCmd(kError,"Command without attached callback");
-}
 
 void lightTick(){
   lightCounter++;
@@ -77,21 +95,6 @@ uint16_t getLDR(void){
   return lightCounter;
 }
 
-void setServo(uint8_t pin, uint8_t pos){  
-  if (pos > 45){
-    openval[pin] = pos;
-    shutterclosed[pin] = false;
-    cmdMessenger.sendCmd(kSOpen, pin);
-  }else{
-    closeval[pin] = pos;
-    shutterclosed[pin]  = true;
-    cmdMessenger.sendCmd(kSClose, pin);
-  }
-  myservo.attach(pins[pin]);  
-  myservo.write(pos);    
-  delay(1500);
-  pinMode(pins[pin], INPUT);  
-}
 
 void setup() {
   pinMode(S1PIN, INPUT);

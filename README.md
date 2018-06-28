@@ -20,3 +20,6 @@ Software:
 
 Addition in October 2017:
 - 3D sketch for 3D printing of a telescope clamp that attaches to the dew shield of an AstroPhysics Starfire 155EDF and that provides the hosuing of a servo.
+
+
+https://github.com/thijse/Arduino-CmdMessenger/issues/27
