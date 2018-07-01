@@ -14,18 +14,24 @@ Adafruit_PWMServoDriver pwm           = Adafruit_PWMServoDriver();
 CmdMessenger            cmdMessenger  = CmdMessenger(Serial, ',', ';'); 
 
 enum{
-  kAcknowledge, // 0 
-  kError,       // 1
+  kAcknowledge,   // 0 
+  kError,         // 1
+  kSetServo,      // 2
+  kStoreServo,    // 3
+  kButtonPressed, // 4
+  kServoPosition  // 5
 };
 
 void storePositions(){
-  for(uint8_t i = 0; i < size(positions); i++){
-    EEPROM.write(i,positions[i]);
+  for(uint8_t i = 0; i < sizeof(positions); i++){
+    EEPROM.write(i, positions[i]);
   }
 }
 
-void readPositions(){
-
+void loadPositions(){
+  for(uint8_t i = 0; i < sizeof(positions); i++){
+    positions[i] = EEPROM.read(i);
+  }  
 }
 
 void OnUnknownCommand(){
@@ -41,9 +47,7 @@ void setup() {
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
 
-  EEPROM.write(0,0);
-
-
+  loadPositions();
 
   Serial.begin(9600);
   cmdMessenger.printLfCr(true);
