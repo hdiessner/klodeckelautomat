@@ -38,8 +38,28 @@ void OnUnknownCommand(){
   cmdMessenger.sendCmd(kError,"Command without attached callback");
 }
 
+void OnSetServo(){
+
+}
+
+void OnStoreServo(){
+
+}
+
+void OnButtonPressed(){
+
+}
+
+void OnServoPosition(){
+
+}
+
 void attachCommandCallbacks(){
   cmdMessenger.attach(OnUnknownCommand);
+  cmdMessenger.attach(OnSetServo);
+  cmdMessenger.attach(OnStoreServo);
+  cmdMessenger.attach(OnButtonPressed);
+  cmdMessenger.attach(OnServoPosition);
 }
 
 void setup() {
