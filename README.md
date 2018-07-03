@@ -18,12 +18,13 @@ Software:
 
 | ID | Data                   | Description          |
 |----|------------------------|----------------------|
-|  0 |                        | Data Acknowledge     |
-|  1 |                        | Error                |
-|  2 | (0..7), (0..255)       | Set Servo x to y     |
-|  3 | (0..7), 0-OPEN 1-CLOSE | Store Servo x as pos |
-|  4 | (0..2)                 | Button Pressed       |
-|  5 | (0..7), 0-OPEN 1-CLOSE | Servo x to pos       |
+|  0 | Text                   | Data Acknowledge     |
+|  1 | Text                   | Error                |
+|  2 | Text                   | Debug Messages       |
+|  3 | (0..7), (0..255)       | Set Servo x to y     |
+|  4 | (0..7), 0-OPEN 1-CLOSE | Store Servo x as pos |
+|  5 | (0..2)                 | Button Pressed       |
+|  6 | (0..7), 0-OPEN 1-CLOSE | Servo x to pos       |
 
 # Pinout
 
@@ -35,6 +36,19 @@ Software:
 | 5   | OE          |
 | A4  | SDA         |
 | A5  | SCL         |
+
+# Servo description
+
+| Num | Telescope | Purpose        |
+|-----|-----------|----------------|
+| 0   | 1         | Cover          |
+| 1   | 1         | Bahtinov       |
+| 2   | 2         | Cover Left     |
+| 3   | 2         | Cover Right    |
+| 4   | 2         | Bahtinov Left  |
+| 5   | 2         | Bahtinov Right |
+| 6   | 3         | Cover          |
+| 7   | 3         | Cover          |
 
 Addition in October 2017:
 - 3D sketch for 3D printing of a telescope clamp that attaches to the dew shield of an AstroPhysics Starfire 155EDF and that provides the hosuing of a servo.
