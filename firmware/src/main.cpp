@@ -4,14 +4,17 @@
 #include <CmdMessenger.h>
 #include <Adafruit_PWMServoDriver.h>
 
+#define NUM_SERVOS   8
+
 #define SWITCH_TELE1 2 
 #define SWITCH_TELE2 3   
 #define SWITCH_TELE3 4
 #define OE_PIN       5   
 
-uint8_t                 positions[16] = {0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255};
-Adafruit_PWMServoDriver pwm           = Adafruit_PWMServoDriver();
-CmdMessenger            cmdMessenger  = CmdMessenger(Serial, ',', ';'); 
+uint16_t                positionsMin[NUM_SERVOS] = {};
+uint16_t                positionsMax[NUM_SERVOS] = {};
+Adafruit_PWMServoDriver pwm                      = Adafruit_PWMServoDriver();
+CmdMessenger            cmdMessenger             = CmdMessenger(Serial, ',', ';'); 
 
 enum{
   kAcknowledge,   // 0 
@@ -23,15 +26,37 @@ enum{
 };
 
 void storePositions(){
-  for(uint8_t i = 0; i < sizeof(positions); i++){
-    EEPROM.write(i, positions[i]);
+  uint8_t  ee = 0;
+  uint8_t* p  = (uint8_t*)(void*)&positionsMin;
+
+  for (uint8_t i = 0; i < sizeof(positionsMin); i++){
+      EEPROM.write(ee++, *p++);
+  }
+
+  ee = 100;
+  p  = (uint8_t*)(void*)&positionsMax;
+
+  for (uint8_t i = 0; i < sizeof(positionsMax); i++){
+      EEPROM.write(ee++, *p++);
   }
 }
 
 void loadPositions(){
-  for(uint8_t i = 0; i < sizeof(positions); i++){
-    positions[i] = EEPROM.read(i);
-  }  
+
+  uint8_t  ee = 0;
+  uint8_t* p  = (uint8_t*)(void*)&positionsMin;
+
+  for (uint8_t i = 0; i < sizeof(positionsMin); i++){
+    *p++ = EEPROM.read(ee++);
+  }
+
+  ee = 100;
+  p  = (uint8_t*)(void*)&positionsMax;
+
+  for (uint8_t i = 0; i < sizeof(positionsMax); i++){
+    *p++ = EEPROM.read(ee++);
+  }
+
 }
 
 void OnUnknownCommand(){
@@ -66,13 +91,16 @@ void setup() {
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
-
-  loadPositions();
+  pinMode(OE_PIN      , OUTPUT);
+  digitalWrite(OE_PIN, LOW); // Enable
 
   Serial.begin(9600);
   cmdMessenger.printLfCr(true);
   attachCommandCallbacks();
   cmdMessenger.sendCmd(kAcknowledge, "Arduino ready!");
+
+  loadPositions();
+
 }
 
 void loop() {  
