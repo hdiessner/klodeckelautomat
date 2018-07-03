@@ -119,8 +119,8 @@ void attachCommandCallbacks(){
 
 void setup() {
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
-  pinMode(SWITCH_TELE1, INPUT_PULLUP);
-  pinMode(SWITCH_TELE1, INPUT_PULLUP);
+  pinMode(SWITCH_TELE2, INPUT_PULLUP);
+  pinMode(SWITCH_TELE3, INPUT_PULLUP);
   pinMode(OE_PIN,       OUTPUT);
   digitalWrite(OE_PIN,  HIGH); // disable
 
