@@ -21,14 +21,14 @@ uint8_t                 telescopeState[3]           = {0, 0, 0};
 Adafruit_PWMServoDriver pwm                         = Adafruit_PWMServoDriver();
 CmdMessenger            cmdMessenger                = CmdMessenger(Serial, ',', ';'); 
 
-enum{             //      Closed     Open
-  kAcknowledge,   // 0 
-  kError,         // 1
-  kDebug,         // 2
-  kSetServo,      // 3   3,1,150;     3,1,400;
-  kStoreServo,    // 4   4,1,0;       4,1,1;
-  kStateChange,   // 5
-  kServoPosition  // 6   0,1,0;       1,1,1;
+enum{                //      Closed     Open
+  kAcknowledge,      // 0 
+  kError,            // 1
+  kDebug,            // 2
+  kSetServo,         // 3   3,1,150;     3,1,400;
+  kStoreServo,       // 4   4,1,0;       4,1,1;
+  kStateChange,      // 5
+  kTelescopePosition // 6   6,0,0;       6,0,1;    6,0,2;
 };
 
 void storePositions(){
@@ -227,18 +227,18 @@ void moveToState(uint8_t telescope, uint8_t state){
 
 }
 
-void OnServoPosition(){
+void OnTelescopePosition(){
     cmdMessenger.sendCmd(kDebug, "move to position");
     uint8_t telescope = cmdMessenger.readInt16Arg();
-    uint8_t state     = cmdMessenger.readInt16Arg();
-    moveToState(telescope, state);
-    cmdMessenger.sendCmd(kAcknowledge, "position reached");
-}
+       uint8_t state     = cmdMessenger.readInt16Arg();
+       moveToState(telescope, state);
+       cmdMessenger.sendCmd(kAcknowledge, "position reached");
+}   
 
-void attachCommandCallbacks(){
-  cmdMessenger.attach(kSetServo,      OnSetServo);
-  cmdMessenger.attach(kStoreServo,    OnStoreServo);
-  cmdMessenger.attach(kServoPosition, OnServoPosition);
+void attachCommandCallbacks(   ){
+  cmdMessenger.attach(kSetServo,          OnSetServo);
+  cmdMessenger.attach(kStoreServo,        OnStoreServo);
+  cmdMessenger.attach(kTelescopePosition, OnTelescopePosition);
 }
 
 void setup() {
