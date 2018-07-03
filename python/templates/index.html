@@ -5,40 +5,75 @@
 
   <h1>Status</h1>
 
-    <a href="/move/1/open">Open 1</a><br><br>
-    <a href="/move/1/close">Close 1</a><br><br>
-    <a href="/move/2/open">Open 2</a><br><br>
-    <a href="/move/2/close">Close 2</a><br><br>
-    <a href="/move/3/open">Open 3</a><br><br>
-    <a href="/move/3/close">Close 3</a><br><br>
-    <a href="/move/4/open">Open 4</a><br><br>
-    <a href="/move/4/close">Close 4</a><br><br>
+  <table class="table table-borderless">
+    <thead>
+      <tr>
+        <th scope="col">Starfire</th>
+        <th scope="col">LX200</th>
+        <th scope="col">ED 80</th>
+      </tr>
+    </thead>
+    <tbody>
+        <form action="" method="post" name="move">
+        <tr>
+            {% if telescopeState[0] == 1 %}
+              <td><button type="submit" name="command" value="0-1" class="btn btn-success btn-lg">Is Open</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="0-1" class="btn btn-danger btn-lg">Open</button></td>
+            {% endif %}
 
-      <form action="" method="post" name="move">
-          {% if servos[0] %}
-              <button type="submit" value="Hallo" class="btn btn-success btn-lg">1 Is Open</button>
-          {% else %}
-              <button type="submit" value="Welt" class="btn btn-danger btn-lg">1 Closed</button>
-          {% endif %}
+            {% if telescopeState[1] == 1 %}
+              <td><button type="submit" name="command" value="1-1" class="btn btn-success btn-lg">Is Open</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="1-1" class="btn btn-danger btn-lg">Open</button></td>
+            {% endif %}
 
-          {% if servos[1] %}
-              <button type="submit" class="btn btn-success btn-lg">2 Is Open</button>
-          {% else %}
-              <button type="submit" class="btn btn-danger btn-lg">2 Closed</button>
-          {% endif %}
+            {% if telescopeState[2] == 1 %}
+              <td><button type="submit" name="command" value="2-1" class="btn btn-success btn-lg">Is Open</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="2-1" class="btn btn-danger btn-lg">Open</button></td>
+            {% endif %}
+        </tr>
+        <tr>
+            {% if telescopeState[0] == 0 %}
+              <td><button type="submit" name="command" value="0-0" class="btn btn-success btn-lg">Closed</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="0-0" class="btn btn-danger btn-lg">Close</button></td>
+            {% endif %}
 
-          {% if servos[2] %}
-              <button type="submit" class="btn btn-success btn-lg">3 Is Open</button>
-          {% else %}
-              <button type="submit" class="btn btn-danger btn-lg">3 Closed</button>
-          {% endif %}
+            {% if telescopeState[1] == 0 %}
+              <td><button type="submit" name="command" value="1-0" class="btn btn-success btn-lg">Closed</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="1-0" class="btn btn-danger btn-lg">Close</button></td>
+            {% endif %}
 
-          {% if servos[3] %}
-              <button type="submit" class="btn btn-success btn-lg">4 Is Open</button>
-          {% else %}
-              <button type="submit" class="btn btn-danger btn-lg">4 Closed</button>
-          {% endif %}
-      </form>
+            {% if telescopeState[2] == 0 %}
+              <td><button type="submit" name="command" value="2-0" class="btn btn-success btn-lg">Closed</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="2-0" class="btn btn-danger btn-lg">Close</button></td>
+            {% endif %}
+        </tr>
+        <tr>
+            {% if telescopeState[0] == 2 %}
+              <td><button type="submit" name="command" value="0-2" class="btn btn-success btn-lg">Bahtinoved</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="0-2" class="btn btn-danger btn-lg">Bahtinov</button></td>
+            {% endif %}
 
+            {% if telescopeState[1] == 2 %}
+              <td><button type="submit" name="command" value="1-2" class="btn btn-success btn-lg">Bahtinoved</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="1-2" class="btn btn-danger btn-lg">Bahtinov</button></td>
+            {% endif %}
+
+            {% if telescopeState[2] == 2 %}
+              <td><button type="submit" name="command" value="2-2" class="btn btn-success btn-lg">Bahtinoved</button></td>
+            {% else %}
+              <td><button type="submit" name="command" value="2-2" class="btn btn-danger btn-lg">Bahtinov</button></td>
+            {% endif %}
+        </tr>
+        </form>
+    </tbody>
+  </table>
 </div>
 {% endblock %}

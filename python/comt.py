@@ -4,13 +4,27 @@ import time
 import threading
 from   flask import Flask
 from   flask import render_template
+from   flask import request
 
 app       = Flask(__name__)
 sendQueue = Queue.Queue()
 
+class Status:
+
+    def __init__(self):
+        self.servoPosition  = [-1] * 8
+        self.telescopeState = [ 1] * 3 
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', servos=servoIsOpen)
+
+    if request.method == 'POST':
+         command = request.form.get('command').split("-")
+         c =  "6,%s,%s;" % (command[0], command[1])
+         sendQueue.put(str(c))
+
+    return render_template('index.html', servoPosition=status.servoPosition, telescopeState=status.telescopeState)
 
 
 @app.route('/move/<servo>/<position>')
@@ -23,7 +37,6 @@ def move(servo, position):
                 servoIsOpen[int(servo)-1] = True
         else:
             if int(servo) == 1:
-                sendQueue.put("3,%s;" % config.get("SERVO1", "min"))
                 status.servoIsOpen[int(servo) - 1] = False
         return render_template('index.html', servos=servoIsOpen)
 
@@ -43,26 +56,20 @@ class ReceiveThread(threading.Thread):
         line = self._ser.readline() # To clear buffer
         while True:
             line    = self._ser.readline()
-            element = line.split(',')
+            clean   = line.split(";")[0]
+            element = clean.split(',')
             command = int(element[0])
             if command == 0:
                 print "Ack Comment:%s" % line
             if command == 1:
                 print "Error:%s" % line
             if command == 2:
-                print "Command 2:%s" % line
-            if command == 3:
-                print "Command 3:%s" % line
-            if command == 4:
-                print "Command 4:%s" % line
+                pass
+                print "Debug:%s" % element[1:]
             if command == 5:
-                print "Command 5:%s" % line
-            if command == 6:
-                print "Command 6:%s" % line
-            if command == 7:
-                print "Command 7:%s" % line
-            if command == 8:
-                print "Command 8:%s" % line
+                telescope = int(element[1])
+                state     = int(element[2])
+                status.telescopeState[telescope] = state
 
 
 class SendThread(threading.Thread):
@@ -79,34 +86,17 @@ class SendThread(threading.Thread):
             line = self._queue.get()
             #print ">>>>>>>>>>>" + line
             self._ser.write(line + "\n")
+            self._ser.flush()
             self._queue.task_done()
-            time.sleep(0.5) # Give him time to react
 
 if __name__ == "__main__":
     print "Start"
-
+    status = Status()
     ser         =  serial.Serial("COM3", 9600)
     servoIsOpen = [True] * 8
     receive     = ReceiveThread(ser, status)
     send        = SendThread(sendQueue, ser, status)
     receive.start()
     send.start()
-
-    time.sleep(2)
-    sendQueue.put('3,%s;' % config.get("SERVO1", "min"))
-    time.sleep(2)
-    sendQueue.put('3,%s;' % config.get("SERVO1", "max"))
-    time.sleep(2)
-    sendQueue.put('4,%s;' % config.get("SERVO2", "min"))
-    time.sleep(2)
-    sendQueue.put('4,%s;' % config.get("SERVO2", "max"))
-    time.sleep(2)
-    sendQueue.put('5,%s;' % config.get("SERVO3", "min"))
-    time.sleep(2)
-    sendQueue.put('5,%s;' % config.get("SERVO3", "max"))
-    time.sleep(2)
-    sendQueue.put('6,%s;' % config.get("SERVO4", "min"))
-    time.sleep(2)
-    sendQueue.put('6,%s;' % config.get("SERVO4", "max"))
-    time.sleep(2)
+    sendQueue.put("2,0,0;") # to sync communication
     app.run(host='0.0.0.0', port=8080)
