@@ -4,12 +4,13 @@
 #include <CmdMessenger.h>
 #include <Adafruit_PWMServoDriver.h>
 
+#define NUM_TELESCOPES   3
 #define NUM_SERVOS       8
-#define MOVE_WAIT_TIME 500
+#define MOVE_WAIT_TIME 800
 
-#define SWITCH_TELE1     2 
-#define SWITCH_TELE2     3   
-#define SWITCH_TELE3     4
+#define SWITCH_TELE0     2 
+#define SWITCH_TELE1     3   
+#define SWITCH_TELE2     4
 
 #define OE_PIN           5   
 
@@ -20,14 +21,14 @@ uint8_t                 telescopeState[3]           = {0, 0, 0};
 Adafruit_PWMServoDriver pwm                         = Adafruit_PWMServoDriver();
 CmdMessenger            cmdMessenger                = CmdMessenger(Serial, ',', ';'); 
 
-enum{                   // Closed     Open
+enum{             //      Closed     Open
   kAcknowledge,   // 0 
   kError,         // 1
   kDebug,         // 2
-  kSetServo,      // 3   3,1,240;     3,1,480;
+  kSetServo,      // 3   3,1,150;     3,1,400;
   kStoreServo,    // 4   4,1,0;       4,1,1;
-  kButtonPressed, // 5
-  kServoPosition  // 6   6,1,0;       6,1,1;
+  kStateChange,   // 5
+  kServoPosition  // 6   0,1,0;       1,1,1;
 };
 
 void storePositions(){
@@ -44,6 +45,7 @@ void storePositions(){
   for (uint8_t i = 0; i < sizeof(positionsOpen); i++){
       EEPROM.write(ee++, *p++);
   }
+  
 }
 
 void loadPositions(){
@@ -71,11 +73,11 @@ void loadPositions(){
 
 void OnSetServo(){
     cmdMessenger.sendCmd(kDebug, "SetServo called");
-    uint8_t servo     = cmdMessenger.readInt16Arg(); 
-    uint16_t position = cmdMessenger.readInt16Arg();
+    uint8_t  servo      = cmdMessenger.readInt16Arg(); 
+    uint16_t position   = cmdMessenger.readInt16Arg();
     positionsSet[servo] = position;
     pwm.setPWM(servo, 0, position);
-    cmdMessenger.sendCmd(kDebug, "StoreServo moved");
+    cmdMessenger.sendCmd(kAcknowledge, "StoreServo moved");
 }
 
 void OnStoreServo(){
@@ -92,23 +94,145 @@ void OnStoreServo(){
     }
 
     storePositions();
-    cmdMessenger.sendCmd(kDebug, "StoreServo stored");
+    cmdMessenger.sendCmd(kAcknowledge, "StoreServo stored");
+}
+
+void moveToState(uint8_t telescope, uint8_t state){
+
+  if (telescope == 0) {
+
+    if (state == 0){                        // Close
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(0, 0, positionsClosed[0]); // Close Cover 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(1, 0, positionsClosed[1]); // Close Bahtinov 
+      telescopeState[0] = 0;
+      
+    } else if (state == 1){                 // Open
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdEnd();
+      cmdMessenger.sendCmd(kStateChange, 1);
+      pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(0, 0, positionsOpen[0]);   // Open Cover
+      telescopeState[0] = 1;
+
+    } else if (state == 2) {                // Bahtinov
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdEnd();
+      cmdMessenger.sendCmd(kStateChange, 1);
+      pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov make sure its away
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(0, 0, positionsOpen[0]);   // Open cover
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(1, 0, positionsClosed[1]); // Close Bahtinov 
+      telescopeState[0] = 2;
+    }
+
+  }
+
+  if (telescope == 1) {
+
+    if (state == 0){                        // Close
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(4, 0, positionsOpen[4]);   // Open Bahtinov 
+      pwm.setPWM(5, 0, positionsOpen[5]);   // Open Bahtinov 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(2, 0, positionsClosed[2]); // Close Cover 
+      pwm.setPWM(3, 0, positionsClosed[3]); // Close Cover 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(4, 0, positionsClosed[4]); // Close Bahtinov 
+      pwm.setPWM(5, 0, positionsClosed[5]); // Close Bahtinov 
+      telescopeState[1] = 0;
+
+    } else if (state == 1){                // Open
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(4, 0, positionsOpen[4]);   // Open Bahtinov make sure its away
+      pwm.setPWM(5, 0, positionsOpen[5]);   // Open Bahtinov make sure its away
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(2, 0, positionsOpen[2]);   // Open cover
+      pwm.setPWM(3, 0, positionsOpen[3]);   // Open cover
+      telescopeState[1] = 1;
+
+    } else if (state == 2) {                // Bahtinov
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(4, 0, positionsOpen[4]);   // Open Bahtinov make sure its away
+      pwm.setPWM(5, 0, positionsOpen[5]);   // Open Bahtinov make sure its away
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(2, 0, positionsOpen[2]);   // Open cover
+      pwm.setPWM(3, 0, positionsOpen[3]);   // Open cover
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(4, 0, positionsClosed[4]); // Close Bahtinov 
+      pwm.setPWM(5, 0, positionsClosed[5]); // Close Bahtinov 
+      telescopeState[1] = 2;
+    }
+
+  }
+
+  if (telescope == 2) {
+
+    if (state == 0){                        // Close
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdArg(0);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(7, 0, positionsOpen[7]);   // Open Bahtinov 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(6, 0, positionsClosed[6]); // Close Cover 
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(7, 0, positionsClosed[7]); // Close Bahtinov 
+      telescopeState[2] = 0;
+
+    } else if (state == 1){                 // Open
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdArg(1);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(7, 0, positionsOpen[7]);   // Open Bahtinov make sure its away
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(6, 0, positionsOpen[6]);   // Open Cover
+      telescopeState[2] = 1;
+
+    } else if (state == 2) {                // Bahtinow
+      cmdMessenger.sendCmdStart(kStateChange);  
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdArg(2);    
+      cmdMessenger.sendCmdEnd();
+      pwm.setPWM(7, 0, positionsOpen[7]);   // Open Bahtinov make sure its away
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(6, 0, positionsOpen[6]);   // Open cover
+      delay(MOVE_WAIT_TIME);
+      pwm.setPWM(7, 0, positionsClosed[7]); // Close Bahtinov 
+      telescopeState[2] = 2;
+    }
+  }
+
 }
 
 void OnServoPosition(){
     cmdMessenger.sendCmd(kDebug, "move to position");
-    uint8_t servo = cmdMessenger.readInt16Arg();
-    uint8_t state = cmdMessenger.readInt16Arg();
-
-    if (state == 0) {
-      pwm.setPWM(servo, 0, positionsClosed[servo]);
-    }
-
-    if (state == 1) {
-      pwm.setPWM(servo, 0, positionsOpen[servo]);
-    }
-
-    cmdMessenger.sendCmd(kDebug, "position reached");
+    uint8_t telescope = cmdMessenger.readInt16Arg();
+    uint8_t state     = cmdMessenger.readInt16Arg();
+    moveToState(telescope, state);
+    cmdMessenger.sendCmd(kAcknowledge, "position reached");
 }
 
 void attachCommandCallbacks(){
@@ -118,9 +242,9 @@ void attachCommandCallbacks(){
 }
 
 void setup() {
+  pinMode(SWITCH_TELE0, INPUT_PULLUP);
   pinMode(SWITCH_TELE1, INPUT_PULLUP);
   pinMode(SWITCH_TELE2, INPUT_PULLUP);
-  pinMode(SWITCH_TELE3, INPUT_PULLUP);
   pinMode(OE_PIN,       OUTPUT);
   digitalWrite(OE_PIN,  HIGH); // disable
 
@@ -132,144 +256,28 @@ void setup() {
   loadPositions();
 
   pwm.begin();  
-  pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
-
-  for (uint8_t i = 0; i < NUM_SERVOS; i++){
-    pwm.setPWM(i, 0, positionsClosed[i]);
-  }
-
+  pwm.setPWMFreq(60);        // Analog servos run at ~60 Hz updates
   digitalWrite(OE_PIN, LOW); // enable
+
+  for (uint8_t i = 0; i < NUM_TELESCOPES; i++){
+    moveToState(i, 1); // Open
+  }
 
 }
 
 void loop() {  
   cmdMessenger.feedinSerialData();
 
+  if(!digitalRead(SWITCH_TELE0)){
+    moveToState(0, (telescopeState[0] + 1) % 3);
+  }
+
   if(!digitalRead(SWITCH_TELE1)){
-    
-    if (telescopeState[0] == 0){          // Closed -> Open
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(1, 0, positionsOpen[1]); // Open Bahtinov 
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(0, 0, positionsOpen[0]); // Open Cover 
-      telescopeState[0] = 1;
-
-    } else if (telescopeState[0] == 1){     // Open -> Bahtinov
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdEnd();
-      cmdMessenger.sendCmd(kButtonPressed, 1);
-      pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(0, 0, positionsOpen[0]);   // Open Cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(1, 0, positionsClosed[1]); // Open Bahtinov
-      telescopeState[0] = 2;
-
-    } else if (telescopeState[0] == 2) {    // Bahtinov -> Close
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdEnd();
-      cmdMessenger.sendCmd(kButtonPressed, 1);
-      pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(0, 0, positionsClosed[0]); // Close cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(1, 0, positionsClosed[1]); // Close Bahtinov 
-      telescopeState[0] = 0;
-    }
-
+    moveToState(1, (telescopeState[1] + 1) % 3);
   }
 
   if(!digitalRead(SWITCH_TELE2)){
-
-    if (telescopeState[1] == 0){          // Closed -> Open
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(4, 0, positionsOpen[4]); // Open Bahtinov 
-      pwm.setPWM(5, 0, positionsOpen[5]); // Open Bahtinov 
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(2, 0, positionsOpen[2]); // Open Cover 
-      pwm.setPWM(3, 0, positionsOpen[3]); // Open Cover 
-      telescopeState[1] = 1;
-
-    } else if (telescopeState[1] == 1){    // Open -> Bahtinov
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(4, 0, positionsOpen[4]);  // Open Bahtinov make sure its avay
-      pwm.setPWM(5, 0, positionsOpen[5]);  // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(2, 0, positionsOpen[2]);  // Open cover
-      pwm.setPWM(3, 0, positionsOpen[3]);  // Open cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(4, 0, positionsClosed[4]); // Open Bahtinov
-      pwm.setPWM(5, 0, positionsClosed[5]); // Open Bahtinov
-      telescopeState[1] = 2;
-
-    } else if (telescopeState[1] == 2) {   // Bahtinov -> Close
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(4, 0, positionsOpen[4]);  // Open Bahtinov make sure its avay
-      pwm.setPWM(5, 0, positionsOpen[5]);  // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(2, 0, positionsClosed[2]); // Close cover
-      pwm.setPWM(3, 0, positionsClosed[3]); // Close cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(4, 0, positionsClosed[4]); // Close Bahtinov 
-      pwm.setPWM(5, 0, positionsClosed[5]); // Close Bahtinov 
-      telescopeState[1] = 0;
-    }
-
-  }
-
-  if(!digitalRead(SWITCH_TELE3)){
-  
-    if (telescopeState[2] == 0){        // Closed -> Open
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdArg(1);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(7, 0, positionsOpen[7]); // Open Bahtinov 
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(6, 0, positionsOpen[6]); // Open Cover 
-      telescopeState[2] = 1;
-
-    } else if (telescopeState[2] == 1){     // Open -> Bahtinov
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(7, 0, positionsOpen[7]);   // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(6, 0, positionsOpen[6]);   // Open Cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(7, 0, positionsClosed[7]); // Close Bahtinov
-      telescopeState[2] = 2;
-
-    } else if (telescopeState[2] == 2) {    // Bahtinow -> Close
-      cmdMessenger.sendCmdStart(kButtonPressed);  
-      cmdMessenger.sendCmdArg(2);    
-      cmdMessenger.sendCmdArg(0);    
-      cmdMessenger.sendCmdEnd();
-      pwm.setPWM(7, 0, positionsOpen[7]);   // Open Bahtinov make sure its avay
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(6, 0, positionsClosed[6]); // Close cover
-      delay(MOVE_WAIT_TIME);
-      pwm.setPWM(7, 0, positionsClosed[7]); // Close Bahtinov 
-      telescopeState[2] = 0;
-    }
-  
+    moveToState(2, (telescopeState[2] + 1) % 3); 
   }
 
 }
