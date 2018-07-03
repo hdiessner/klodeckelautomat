@@ -118,7 +118,6 @@ void moveToState(uint8_t telescope, uint8_t state){
       cmdMessenger.sendCmdArg(0);    
       cmdMessenger.sendCmdArg(1);    
       cmdMessenger.sendCmdEnd();
-      cmdMessenger.sendCmd(kStateChange, 1);
       pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov
       delay(MOVE_WAIT_TIME);
       pwm.setPWM(0, 0, positionsOpen[0]);   // Open Cover
@@ -129,7 +128,6 @@ void moveToState(uint8_t telescope, uint8_t state){
       cmdMessenger.sendCmdArg(0);    
       cmdMessenger.sendCmdArg(2);    
       cmdMessenger.sendCmdEnd();
-      cmdMessenger.sendCmd(kStateChange, 1);
       pwm.setPWM(1, 0, positionsOpen[1]);   // Open Bahtinov make sure its away
       delay(MOVE_WAIT_TIME);
       pwm.setPWM(0, 0, positionsOpen[0]);   // Open cover
