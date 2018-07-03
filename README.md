@@ -16,15 +16,21 @@ Software:
 
 # Serial commands
 
-| ID | Data                   | Description          |
-|----|------------------------|----------------------|
-|  0 | Text                   | Data Acknowledge     |
-|  1 | Text                   | Error                |
-|  2 | Text                   | Debug Messages       |
-|  3 | (0..7), (0..255)       | Set Servo x to y     |
-|  4 | (0..7), 0-OPEN 1-CLOSE | Store Servo x as pos |
-|  5 | (0..2)                 | Button Pressed       |
-|  6 | (0..7), 0-OPEN 1-CLOSE | Servo x to pos       |
+| ID | Data              | Description          |
+|----|-------------------|----------------------|
+|  0 | Text              | Data Acknowledge     |
+|  1 | Text              | Error                |
+|  2 | Text              | Debug Messages       |
+|  3 | (0..7), (0..255)  | Set Servo x to y     |
+|  4 | (0..7), State     | Store Servo x as pos |
+|  5 | (0..2)  New state | Button Pressed       |
+|  6 | (0..7), State     | Servo x to pos       |
+
+| ID | State    |
+|----|----------|
+| 0  | Close    |
+| 1  | Open     |
+| 2  | Bahtinov |
 
 # Pinout
 
@@ -34,7 +40,7 @@ Software:
 | 3   | Button 2    |
 | 4   | Button 3    |
 | 5   | OE          |
-| A4  | SDA         |
+| A4  | SDA         | 
 | A5  | SCL         |
 
 # Servo description
@@ -48,7 +54,7 @@ Software:
 | 4   | 2         | Bahtinov Left  |
 | 5   | 2         | Bahtinov Right |
 | 6   | 3         | Cover          |
-| 7   | 3         | Cover          |
+| 7   | 3         | Bahtinov       |
 
 Addition in October 2017:
 - 3D sketch for 3D printing of a telescope clamp that attaches to the dew shield of an AstroPhysics Starfire 155EDF and that provides the hosuing of a servo.
