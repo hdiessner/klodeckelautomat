@@ -2,25 +2,15 @@ import Queue
 import serial
 import time
 import threading
-import ConfigParser
 from   flask import Flask
 from   flask import render_template
 
 app       = Flask(__name__)
 sendQueue = Queue.Queue()
-config    = ConfigParser.ConfigParser()
-config.read("config.ini")
-
-class Status:
-
-    def __init__(self):
-        self.light = 0
-        self.servoIsOpen = [True] * 4
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', light=status.light, servos=status.servoIsOpen)
+    return render_template('index.html', servos=servoIsOpen)
 
 
 @app.route('/move/<servo>/<position>')
@@ -30,29 +20,14 @@ def move(servo, position):
 
         if position == 'open':
             if int(servo) == 1:
-                sendQueue.put("3,%s;" % config.get("SERVO1", "max"))
-            if int(servo) == 2:
-                sendQueue.put("4,%s;" % config.get("SERVO2", "max"))
-            if int(servo) == 3:
-                sendQueue.put("5,%s;" % config.get("SERVO3", "max"))
-            if int(servo) == 4:
-                sendQueue.put("6,%s;" % config.get("SERVO4", "max"))
-            status.servoIsOpen[int(servo)-1] = True
+                servoIsOpen[int(servo)-1] = True
         else:
             if int(servo) == 1:
                 sendQueue.put("3,%s;" % config.get("SERVO1", "min"))
-            if int(servo) == 2:
-                sendQueue.put("4,%s;" % config.get("SERVO2", "min"))
-            if int(servo) == 3:
-                sendQueue.put("5,%s;" % config.get("SERVO3", "min"))
-            if int(servo) == 4:
-                sendQueue.put("6,%s;" % config.get("SERVO4", "min"))
-            sendQueue.put("%d,%d;" % (int(servo) + 2, 14))
-            status.servoIsOpen[int(servo) - 1] = False
-        return render_template('index.html', light=status.light, servos=status.servoIsOpen)
+                status.servoIsOpen[int(servo) - 1] = False
+        return render_template('index.html', servos=servoIsOpen)
 
     else:
-
         return "Error, wrong parameters. Try /move/1/open"
 
 
@@ -75,22 +50,19 @@ class ReceiveThread(threading.Thread):
             if command == 1:
                 print "Error:%s" % line
             if command == 2:
-                self._status.light = int(element[1].split(";")[0])
-                print self._status.light
+                print "Command 2:%s" % line
             if command == 3:
-                print "Set S1"
+                print "Command 3:%s" % line
             if command == 4:
-                print "Set S2"
+                print "Command 4:%s" % line
             if command == 5:
-                print "Set S3"
+                print "Command 5:%s" % line
             if command == 6:
-                print "Set S4"
+                print "Command 6:%s" % line
             if command == 7:
-                servo = int(element[1].split(";")[0])
-                self._status.servoIsOpen[servo] = True
+                print "Command 7:%s" % line
             if command == 8:
-                servo = int(element[1].split(";")[0])
-                self._status.servoIsOpen[servo] = False
+                print "Command 8:%s" % line
 
 
 class SendThread(threading.Thread):
@@ -98,8 +70,8 @@ class SendThread(threading.Thread):
     def __init__(self, queue, ser, status):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self._queue = queue
-        self._ser   = ser
+        self._queue  = queue
+        self._ser    = ser
         self._status = status
 
     def run(self):
@@ -113,10 +85,10 @@ class SendThread(threading.Thread):
 if __name__ == "__main__":
     print "Start"
 
-    ser = serial.Serial("/dev/cu.wchusbserial1410", 9600)
-    status = Status()
-    receive = ReceiveThread(ser, status)
-    send    = SendThread(sendQueue, ser, status)
+    ser         =  serial.Serial("COM3", 9600)
+    servoIsOpen = [True] * 8
+    receive     = ReceiveThread(ser, status)
+    send        = SendThread(sendQueue, ser, status)
     receive.start()
     send.start()
 
