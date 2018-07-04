@@ -257,10 +257,6 @@ void setup() {
   pwm.setPWMFreq(60);        // Analog servos run at ~60 Hz updates
   digitalWrite(OE_PIN, LOW); // enable
 
-  for (uint8_t i = 0; i < NUM_TELESCOPES; i++){
-    moveToState(i, 1); // Open
-  }
-
 }
 
 void loop() {  
