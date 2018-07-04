@@ -26,11 +26,12 @@ Software:
 |  5 | (0..2)  New state | Change State         |
 |  6 | (0..2), State     | Telescope to pos     |
 
-| ID | State    |
-|----|----------|
-| 0  | Close    |
-| 1  | Open     |
-| 2  | Bahtinov |
+| ID | State     |
+|----|-----------|
+| 0  | Close     |
+| 1  | Open      |
+| 2  | Bahtinov  |
+| 3  | Undefined |
 
 # Pinout
 
