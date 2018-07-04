@@ -3,6 +3,12 @@
 {% block content %}
 <div class="container">
 
+<script language="JavaScript" type="text/javascript">
+  {% if reload %}
+    setTimeout("location.href = '\'", 2000);
+  {% endif %} 
+</script>
+
   <h1>Status</h1>
 
   <table class="table table-borderless">
@@ -14,7 +20,7 @@
       </tr>
     </thead>
     <tbody>
-        <form action="" method="post" name="move">
+        <form action="/" method="post" name="move">
         <tr>
             {% if telescopeState[0] == 1 %}
               <td><button type="submit" name="command" value="0-1" class="btn btn-success btn-lg">Is Open</button></td>
@@ -73,6 +79,47 @@
             {% endif %}
         </tr>
         </form>
+        <tr>
+          <td>
+            <form action="/move" method="post" name="move">
+                <input type="text" class="form-control" name="position" value="0" placeholder="300">
+                <select class="form-control" id="exampleFormControlSelect1" name="plate">
+                    <option value="0">Cover</option>
+                    <option value="1">Bahtinov</option>
+                </select>
+                <button type="submit" name="command" value="move"  class="btn btn-primary">Move</button>
+                <button type="submit" name="command" value="open"  class="btn btn-primary">Store Open</button>
+                <button type="submit" name="command" value="close" class="btn btn-primary">Store Closed</button>
+            </form>
+          </td>
+          <td>
+              <form action="/move" method="post" name="move">
+                  <input type="text" class="form-control" name="position" value="0" placeholder="300">
+                  <select class="form-control" id="exampleFormControlSelect1" name="plate">
+                      <option value="2">Cover Left</option>
+                      <option value="3">Cover Right</option>
+                      <option value="4">Bahtinov Left</option>
+                      <option value="5">Bahtinov Right</option>
+                  </select>
+                  <button type="submit" name="command" value="move"  class="btn btn-primary">Move</button>
+                  <button type="submit" name="command" value="open"  class="btn btn-primary">Store Open</button>
+                  <button type="submit" name="command" value="close" class="btn btn-primary">Store Closed</button>
+              </form>
+            </td>
+            <td>
+                <form action="/move" method="post" name="move">
+                    <input type="text" class="form-control" name="position" value="0" placeholder="300">
+                    <select class="form-control" id="exampleFormControlSelect1" name="plate">
+                        <option value="6">Cover</option>
+                        <option value="7">Bahtinov</option>
+                    </select>
+                    <button type="submit" name="command" value="move"  class="btn btn-primary">Move</button>
+                    <button type="submit" name="command" value="open"  class="btn btn-primary">Store Open</button>
+                    <button type="submit" name="command" value="close" class="btn btn-primary">Store Closed</button>
+                </form>
+              </td>
+            </tr>
+
     </tbody>
   </table>
 </div>

@@ -12,37 +12,43 @@ sendQueue = Queue.Queue()
 class Status:
 
     def __init__(self):
-        self.servoPosition  = [-1] * 8
-        self.telescopeState = [ 1] * 3 
+        self.servoPosition  = [300] * 8
+        self.telescopeState = [  3] * 3 
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
     if request.method == 'POST':
-         command = request.form.get('command').split("-")
-         c =  "6,%s,%s;" % (command[0], command[1])
-         sendQueue.put(str(c))
+        command = request.form.get('command').split("-")
+        c =  "6,%s,%s;" % (command[0], command[1])
+        sendQueue.put(str(c))
+        print("post")
+        return render_template('index.html', reload=True, servoPosition=status.servoPosition, telescopeState=status.telescopeState)     
 
-    return render_template('index.html', servoPosition=status.servoPosition, telescopeState=status.telescopeState)
+    print("normal")
+    return render_template('index.html', reload=False, servoPosition=status.servoPosition, telescopeState=status.telescopeState)
 
 
-@app.route('/move/<servo>/<position>')
-def move(servo, position):
+@app.route('/move', methods=['POST'])
+def move():
 
-    if servo is not None and int(servo) > 0 and int(servo) < 5 and position in ['open', 'close']:
+    if request.method == "POST":
+        print("POST")
+        position = request.form.get('position')
+        plate    = request.form.get('plate')
+        command  = request.form.get('command')
 
-        if position == 'open':
-            if int(servo) == 1:
-                servoIsOpen[int(servo)-1] = True
-        else:
-            if int(servo) == 1:
-                status.servoIsOpen[int(servo) - 1] = False
-        return render_template('index.html', servos=servoIsOpen)
+        if command == "move":
+            sendQueue.put(str("3,%s,%s;" % (plate, position)))
+        
+        if command == "open":
+            sendQueue.put(str("4,%s,1;" % (plate)))
 
-    else:
-        return "Error, wrong parameters. Try /move/1/open"
+        if command == "close":
+            sendQueue.put(str("4,%s,0;" % (plate)))
 
+    return render_template('index.html', reload=False, servoPosition=status.servoPosition, telescopeState=status.telescopeState)
 
 class ReceiveThread(threading.Thread):
 
