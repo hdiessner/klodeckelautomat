@@ -14,6 +14,12 @@ Software:
 - .py Python script to control open / close operations via command line
 - .html front-end to use a web browser to open / close the cover
 
+# Install python part
+ 1. Set Port in Winkergrabbe.py
+ 2. Optional: setup virtuelenv
+ 3. pip install -r requirements.txt
+ 4. python Winkergrabbe.py
+
 # Serial commands
 
 | ID | Data              | Description          |
